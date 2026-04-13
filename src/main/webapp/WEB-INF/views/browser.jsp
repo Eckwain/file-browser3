@@ -2,15 +2,17 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="com.example.filebrowser.model.FileItem" %>
+<%@ page import="com.example.filebrowser.model.User" %>
 <%@ page import="java.util.Date" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 
 <%
     String currentDirectory = (String) request.getAttribute("currentDirectory");
+    String homeDirectory = (String) request.getAttribute("homeDirectory");
     String parentPath = (String) request.getAttribute("parentPath");
     List<FileItem> items = (List<FileItem>) request.getAttribute("items");
     Date generatedAt = (Date) request.getAttribute("generatedAt");
-
+    User currentUser = (User) request.getAttribute("currentUser");
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 %>
 
@@ -18,83 +20,39 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>File Browser</title>
+    <title>Файловый браузер</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background: #f5f5f5;
-        }
-
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        h1, h2 {
-            margin-top: 0;
-        }
-
-        .info {
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #eef5ff;
-            border-left: 4px solid #3b82f6;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background: #f0f0f0;
-        }
-
-        a {
-            text-decoration: none;
-            color: #0b66c3;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .folder {
-            font-weight: bold;
-        }
-
-        .top-line {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+        .header { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+        .user-box { text-align: right; }
+        .logout-btn { display: inline-block; padding: 8px 12px; background: #dc2626; color: white; border-radius: 6px; text-decoration: none; }
+        .info { margin: 15px 0; padding: 10px; background: #eef5ff; border-left: 4px solid #3b82f6; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f0f0f0; }
+        a { text-decoration: none; color: #0b66c3; }
+        .folder { font-weight: bold; }
     </style>
 </head>
-
 <body>
 <div class="container">
-
-    <div class="top-line">
+    <div class="header">
         <div>
             <h1>Файловый браузер</h1>
             <div>Время генерации: <%= sdf.format(generatedAt) %></div>
         </div>
+        <div class="user-box">
+            <div><b>Пользователь:</b> <%= currentUser.getLogin() %></div>
+            <div style="margin-top: 10px;">
+                <a class="logout-btn" href="<%= request.getContextPath() %>/logout">Выйти</a>
+            </div>
+        </div>
     </div>
 
     <div class="info">
-        <div><b>Текущая директория:</b> <%= currentDirectory %></div>
+        <div><b>Домашняя папка:</b> <%= homeDirectory %></div>
+        <div><b>Текущая папка:</b> <%= currentDirectory %></div>
         <div>
             <b>Переход:</b>
             <a href="<%= request.getContextPath() %>/browse">Домой</a>
@@ -117,9 +75,7 @@
         </thead>
         <tbody>
         <% if (items == null || items.isEmpty()) { %>
-            <tr>
-                <td colspan="5">Папка пуста</td>
-            </tr>
+            <tr><td colspan="5">Папка пуста</td></tr>
         <% } else { %>
             <% for (FileItem item : items) { %>
                 <tr>
@@ -145,7 +101,6 @@
         <% } %>
         </tbody>
     </table>
-
 </div>
 </body>
 </html>

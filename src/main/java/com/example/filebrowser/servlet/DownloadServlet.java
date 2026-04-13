@@ -1,11 +1,13 @@
 package com.example.filebrowser.servlet;
 
+import com.example.filebrowser.model.User;
 import com.example.filebrowser.util.PathUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,8 +21,12 @@ public class DownloadServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute("authUser");
+
         String pathParam = request.getParameter("path");
-        File file = PathUtil.resolveFile(pathParam);
+        File homeDirectory = new File(user.getHomeDirectory());
+        File file = PathUtil.resolveFileWithinHome(homeDirectory, pathParam);
 
         if (file == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found");
