@@ -1,6 +1,7 @@
 package com.example.filebrowser.servlet;
 
 import com.example.filebrowser.model.User;
+import com.example.filebrowser.util.PasswordUtil;
 import com.example.filebrowser.util.UserStore;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,7 +19,7 @@ public class LoginServlet extends HttpServlet {
     public void init() {
         synchronized (getServletContext()) {
             if (getServletContext().getAttribute("userStore") == null) {
-                getServletContext().setAttribute("userStore", UserStore.defaultStore());
+                getServletContext().setAttribute("userStore", new UserStore());
             }
         }
     }
@@ -37,16 +38,19 @@ public class LoginServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         UserStore userStore = (UserStore) getServletContext().getAttribute("userStore");
-        User user = userStore.authenticate(login, password);
-        if (user == null) {
-            request.setAttribute("errorMessage", "Неверный логин или пароль");
+        User user = userStore.findByLogin(login);
+
+        if (user != null && PasswordUtil.matches(password, user.getPasswordHash())) {
+            HttpSession session = request.getSession(true);
+            session.setAttribute("authUser", user);
+            response.sendRedirect(request.getContextPath() + "/browse");
+
+        } else {
+            request.setAttribute("error", "Неверный логин или пароль");
             request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
-            return;
         }
 
-        HttpSession session = request.getSession(true);
-        session.setAttribute("authUser", user);
 
-        response.sendRedirect(request.getContextPath() + "/browse");
+
     }
 }

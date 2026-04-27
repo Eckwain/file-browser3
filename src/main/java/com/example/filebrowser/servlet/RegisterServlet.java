@@ -1,6 +1,7 @@
 package com.example.filebrowser.servlet;
 
 import com.example.filebrowser.model.User;
+import com.example.filebrowser.util.PasswordUtil;
 import com.example.filebrowser.util.UserStore;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,7 +22,7 @@ public class RegisterServlet extends HttpServlet {
 
     @Override
     public void init() {
-        this.userStore = UserStore.defaultStore();
+        this.userStore = new UserStore();
     }
 
     @Override
@@ -29,6 +30,7 @@ public class RegisterServlet extends HttpServlet {
             throws ServletException, IOException {
         request.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(request, response);
     }
+
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -53,9 +55,11 @@ public class RegisterServlet extends HttpServlet {
         Path baseRoot = Paths.get(System.getProperty("user.home"), "filemanager");
         Path homeDir = baseRoot.resolve(login).normalize();
         Files.createDirectories(homeDir);
-
-        User user = userStore.register(login, password, email, homeDir.toAbsolutePath().toString());
-
+        String passwordHash = PasswordUtil.hash(password);
+        User user = new User(login, passwordHash, email, homeDir.toString());
+        System.out.println("REGISTER START");
+        boolean success = userStore.register(user);
+        System.out.println("REGISTER RESULT: " + success);
         HttpSession session = request.getSession(true);
         session.setAttribute("authUser", user);
 
